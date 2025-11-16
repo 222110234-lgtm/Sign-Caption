@@ -1,0 +1,1607 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Caption - Real-time Accessibility Solutions</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- React and ReactDOM -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    
+    <!-- Babel for JSX -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    
+    <!-- Framer Motion -->
+    <script src="https://unpkg.com/framer-motion@10/dist/framer-motion.js"></script>
+    
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    
+    <style>
+        /* Custom CSS Variables */
+        :root {
+            --font-size: 16px;
+            --background: #ffffff;
+            --foreground: #252525;
+            --card: #ffffff;
+            --card-foreground: #252525;
+            --primary: #030213;
+            --primary-foreground: #ffffff;
+            --secondary: #f3f3f5;
+            --secondary-foreground: #030213;
+            --muted: #ececf0;
+            --muted-foreground: #717182;
+            --accent: #e9ebef;
+            --accent-foreground: #030213;
+            --destructive: #d4183d;
+            --destructive-foreground: #ffffff;
+            --border: rgba(0, 0, 0, 0.1);
+            --input: transparent;
+            --input-background: #f3f3f5;
+            --switch-background: #cbced4;
+            --font-weight-medium: 500;
+            --font-weight-normal: 400;
+            --ring: #b5b5b5;
+            --radius: 0.625rem;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            font-size: var(--font-size);
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            background-color: var(--background);
+            color: var(--foreground);
+        }
+        
+        /* RTL Support */
+        [dir="rtl"] {
+            direction: rtl;
+        }
+        
+        /* Toast Notification Styles */
+        .toast-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        .toast {
+            min-width: 250px;
+            padding: 1rem 1.25rem;
+            border-radius: 0.5rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            animation: slideIn 0.3s ease;
+            background: white;
+            border: 1px solid #e5e5e5;
+        }
+        
+        .toast-success {
+            border-left: 4px solid #10b981;
+        }
+        
+        .toast-error {
+            border-left: 4px solid #ef4444;
+        }
+        
+        .toast-info {
+            border-left: 4px solid #3b82f6;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+        
+        .toast-exit {
+            animation: slideOut 0.3s ease;
+        }
+        
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+        
+        /* Custom Slider Styles */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 4px;
+            border-radius: 2px;
+            background: linear-gradient(to right, #9333ea, #14b8a6);
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #9333ea;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid #9333ea;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        /* Animation utilities */
+        .animate-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.5;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <div id="toast-root" class="toast-container"></div>
+    
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const { motion } = Motion;
+        
+        // Toast notification system
+        const Toast = ({ message, type = 'info', onClose }) => {
+            useEffect(() => {
+                const timer = setTimeout(() => {
+                    onClose();
+                }, type === 'info' && message.length > 50 ? 10000 : type === 'error' ? 5000 : 3000);
+                
+                return () => clearTimeout(timer);
+            }, [onClose, type, message]);
+            
+            return (
+                <div className={`toast toast-${type}`}>
+                    <div className="flex-1">
+                        <p className="text-sm text-gray-800">{message}</p>
+                    </div>
+                </div>
+            );
+        };
+        
+        const ToastContainer = () => {
+            const [toasts, setToasts] = React.useState([]);
+            
+            React.useEffect(() => {
+                window.showToast = (message, type = 'info') => {
+                    const id = Date.now();
+                    setToasts(prev => [...prev, { id, message, type }]);
+                };
+            }, []);
+            
+            const removeToast = (id) => {
+                setToasts(prev => prev.filter(toast => toast.id !== id));
+            };
+            
+            return ReactDOM.createPortal(
+                toasts.map(toast => (
+                    <Toast
+                        key={toast.id}
+                        message={toast.message}
+                        type={toast.type}
+                        onClose={() => removeToast(toast.id)}
+                    />
+                )),
+                document.getElementById('toast-root')
+            );
+        };
+        
+        // Helper function for toast
+        const toast = {
+            success: (msg) => window.showToast(msg, 'success'),
+            error: (msg) => window.showToast(msg, 'error'),
+            info: (msg) => window.showToast(msg, 'info')
+        };
+        
+        // Lucide Icon Components
+        const Icon = ({ name, className = "w-5 h-5", ...props }) => {
+            const iconRef = useRef(null);
+            
+            useEffect(() => {
+                if (iconRef.current && window.lucide) {
+                    const icon = window.lucide.createElement(window.lucide[name]);
+                    if (icon) {
+                        iconRef.current.innerHTML = '';
+                        iconRef.current.appendChild(icon);
+                    }
+                }
+            }, [name]);
+            
+            return <i ref={iconRef} className={className} {...props}></i>;
+        };
+        
+        // Main App Component
+        function App() {
+            const [activeTab, setActiveTab] = useState('home');
+            const [isCallActive, setIsCallActive] = useState(false);
+            const [isMicOn, setIsMicOn] = useState(true);
+            const [isVideoOn, setIsVideoOn] = useState(true);
+            const [isAudioOn, setIsAudioOn] = useState(true);
+            const [captionSize, setCaptionSize] = useState(16);
+            const [language, setLanguage] = useState('english');
+            const [showChat, setShowChat] = useState(false);
+            const [captionsEnabled, setCaptionsEnabled] = useState(true);
+            const [showInviteModal, setShowInviteModal] = useState(false);
+            const [textColor, setTextColor] = useState('#ffffff');
+            const [textBackgroundColor, setTextBackgroundColor] = useState('#000000');
+            const [chatMessages, setChatMessages] = useState([
+                { id: 1, sender: 'Sarah Johnson', text: 'Hello everyone!', time: '10:30 AM', isMe: false },
+                { id: 2, sender: 'Me', text: 'Hi Sarah! Welcome to the call.', time: '10:31 AM', isMe: true }
+            ]);
+            const [messageInput, setMessageInput] = useState('');
+            const [isVideoExpanded, setIsVideoExpanded] = useState(false);
+            const [stream, setStream] = useState(null);
+            const [currentCaption, setCurrentCaption] = useState('');
+            const [inviteEmail, setInviteEmail] = useState('');
+            const [linkCopied, setLinkCopied] = useState(false);
+            const [showPermissionHelp, setShowPermissionHelp] = useState(false);
+            
+            const videoRef = useRef(null);
+            const videoRefExpanded = useRef(null);
+            
+            const colorOptions = [
+                '#ffffff', '#000000', '#ff0000', '#00ff00', '#0000ff',
+                '#ffff00', '#ff00ff', '#00ffff', '#ffa500', '#800080'
+            ];
+            
+            const translations = {
+                english: {
+                    signCaption: "Sign Caption",
+                    tagline: "Real-time accessibility solutions",
+                    online: "Online",
+                    home: "Home",
+                    callGeneration: "Call Generation",
+                    aboutUs: "About Us",
+                    settings: "Settings",
+                    breakBarriers: "Break Communication Barriers",
+                    heroDescription: "Experience real-time sign language interpretation and captioning that makes every conversation accessible and inclusive.",
+                    startVideoCall: "Start Video Call",
+                    learnMore: "Learn More",
+                    realTimeProcessing: "Real-Time Processing",
+                    realTimeDesc: "Instant sign language interpretation with minimal delay for seamless communication.",
+                    securePrivate: "Secure & Private",
+                    secureDesc: "End-to-end encryption ensures your conversations remain private and secure.",
+                    multiLanguage: "Multi-Language",
+                    multiDesc: "Support for multiple sign languages and spoken languages worldwide.",
+                    videoCallInterface: "Video Call Interface",
+                    videoFeedText: "Video feed will appear here",
+                    live: "Live",
+                    captionsText: "Real-time captions will appear here during the call...",
+                    quickActions: "Quick Actions",
+                    inviteParticipants: "Invite Participants",
+                    openChat: "Open Chat",
+                    closeChat: "Close Chat",
+                    showCaptions: "Show Captions",
+                    hideCaptions: "Hide Captions",
+                    callStatistics: "Call Statistics",
+                    duration: "Duration:",
+                    quality: "Quality:",
+                    participants: "Participants:",
+                    chat: "Chat",
+                    chatPlaceholder: "Chat messages will appear here...",
+                    typeMessage: "Type a message...",
+                    send: "Send",
+                    sendInvitation: "Send Invitation",
+                    invite: "Invite",
+                    enterEmail: "Enter email address...",
+                    aboutUsTitle: "About Us",
+                    aboutUsText1: "Sign Caption is a revolutionary platform designed to bridge video communication gaps through advanced sign language and live translation technology. Our mission lies in enabling every person to communicate effectively, regardless of their hearing ability or language barriers.",
+                    aboutUsText2: "Built by a diverse team of developers, linguists, and accessibility experts, our platform prioritizes creating a seamless user experience that fosters meaningful connections between people from all walks of life.",
+                    aboutUsText3: "We believe technology should be inclusive, accessible, and empowering for everyone.",
+                    contactUs: "Contact Us",
+                    available247: "Available 24/7",
+                    communityText: "Join our community of users making communication accessible for everyone!",
+                    displaySettings: "Display Settings",
+                    displayDesc: "Customize your visual experience",
+                    captionSize: "Caption Size",
+                    currentSize: "Current size:",
+                    language: "Language",
+                    textColor: "Text Color",
+                    textBackgroundColor: "Text Background Color",
+                    audioSettings: "Audio Settings",
+                    audioDesc: "Configure audio preferences",
+                    microphoneVolume: "Microphone Volume",
+                    speakerVolume: "Speaker Volume",
+                },
+                arabic: {
+                    signCaption: "ترجمة الإشارة",
+                    tagline: "حلول إمكانية الوصول في الوقت الفعلي",
+                    online: "متصل",
+                    home: "الرئيسية",
+                    callGeneration: "إنشاء المكالمات",
+                    aboutUs: "من نحن",
+                    settings: "الإعدادات",
+                    breakBarriers: "كسر حواجز التواصل",
+                    heroDescription: "اختبر ترجمة لغة الإشارة في الوقت الفعلي والترجمة النصية التي تجعل كل محادثة سهلة الوصول وشاملة.",
+                    startVideoCall: "بدء مكالمة فيديو",
+                    learnMore: "اعرف أكثر",
+                    realTimeProcessing: "المعالجة في الوقت الفعلي",
+                    realTimeDesc: "ترجمة فورية للغة الإشارة مع تأخير ضئيل للتواصل السلس.",
+                    securePrivate: "آمن وخاص",
+                    secureDesc: "التشفير من طرف إلى طرف يضمن بقاء محادثاتك خاصة وآمنة.",
+                    multiLanguage: "متعدد اللغات",
+                    multiDesc: "دعم لعدة لغات إشارة ولغات منطوقة حول العالم.",
+                    videoCallInterface: "واجهة مكالمة الفيديو",
+                    videoFeedText: "ستظهر موجز الفيديو هنا",
+                    live: "مباشر",
+                    captionsText: "ستظهر التسميات التوضيحية في الوقت الفعلي هنا أثناء المكالمة...",
+                    quickActions: "إجراءات سريعة",
+                    inviteParticipants: "دعوة المشاركين",
+                    openChat: "فتح الدردشة",
+                    closeChat: "إغلاق الدردشة",
+                    showCaptions: "إظهار التسميات",
+                    hideCaptions: "إخفاء التسميات",
+                    callStatistics: "إحصائيات المكالمة",
+                    duration: "المدة:",
+                    quality: "الجودة:",
+                    participants: "المشاركون:",
+                    chat: "الدردشة",
+                    chatPlaceholder: "ستظهر رسائل الدردشة هنا...",
+                    typeMessage: "اكتب رسالة...",
+                    send: "إرسال",
+                    sendInvitation: "إرسال دعوة",
+                    invite: "دعوة",
+                    enterEmail: "أدخل عنوان البريد الإلكتروني...",
+                    aboutUsTitle: "من نحن",
+                    aboutUsText1: "ترجمة الإشارة هي منصة ثورية مصممة لسد فجوات التواصل المرئي من خلال تقنية لغة الإشارة المتقدمة والترجمة المباشرة. مهمتنا تكمن في تمكين كل شخص من التواصل بفعالية، بغض النظر عن قدرته على السمع أو حواجز اللغة.",
+                    aboutUsText2: "بناها فريق متنوع من المطورين واللغويين وخبراء إمكانية الوصول، تعطي منصتنا الأولوية لخلق تجربة مستخدم سلسة تعزز الاتصالات الهادفة بين الأشخاص من جميع مناحي الحياة.",
+                    aboutUsText3: "نؤمن أن التكنولوجيا يجب أن تكون شاملة ومتاحة ومُمكِّنة للجميع.",
+                    contactUs: "اتصل بنا",
+                    available247: "متاح 24/7",
+                    communityText: "انضم إلى مجتمعنا من المستخدمين الذين يجعلون التواصل متاحًا للجميع!",
+                    displaySettings: "إعدادات العرض",
+                    displayDesc: "تخصيص تجربتك البصرية",
+                    captionSize: "حجم التسمية",
+                    currentSize: "الحجم الحالي:",
+                    language: "اللغة",
+                    textColor: "لون النص",
+                    textBackgroundColor: "لون خلفية النص",
+                    audioSettings: "إعدادات الصوت",
+                    audioDesc: "تكوين تفضيلات الصوت",
+                    microphoneVolume: "مستوى صوت الميكروفون",
+                    speakerVolume: "مستوى صوت السماعة",
+                }
+            };
+            
+            const t = translations[language] || translations.english;
+            const isRTL = language === 'arabic';
+            
+            const participants = [
+                { id: 1, name: 'Sarah Johnson', email: 'sarah@email.com', avatar: 'SJ', online: true },
+                { id: 2, name: 'Mike Chen', email: 'mike@email.com', avatar: 'MC', online: true },
+                { id: 3, name: 'Emma Davis', email: 'emma@email.com', avatar: 'ED', online: false },
+                { id: 4, name: 'Alex Rodriguez', email: 'alex@email.com', avatar: 'AR', online: true },
+                { id: 5, name: 'Lisa Wang', email: 'lisa@email.com', avatar: 'LW', online: false }
+            ];
+            
+            const toggleCall = async () => {
+                if (!isCallActive) {
+                    try {
+                        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                            toast.error('Your browser does not support camera/microphone access. Please use a modern browser like Chrome, Firefox, or Safari.');
+                            return;
+                        }
+                        
+                        const mediaStream = await navigator.mediaDevices.getUserMedia({
+                            video: isVideoOn,
+                            audio: isMicOn
+                        });
+                        setStream(mediaStream);
+                        setIsCallActive(true);
+                        
+                        if (videoRef.current) {
+                            videoRef.current.srcObject = mediaStream;
+                        }
+                        
+                        toast.success('Call started successfully!');
+                    } catch (error) {
+                        let errorMessage = 'Could not access camera/microphone.';
+                        
+                        if (error.name === 'NotAllowedError' || error.name === 'PermissionDeniedError') {
+                            errorMessage = '⚠️ Camera/microphone permission denied. Please allow access in your browser settings and try again.';
+                            toast.error(errorMessage);
+                            setIsCallActive(true);
+                            toast.info('📱 Call started in audio-only mode. You can still use chat and captions!');
+                        } else if (error.name === 'NotFoundError' || error.name === 'DevicesNotFoundError') {
+                            errorMessage = '📷 No camera or microphone found. Please connect a device and try again.';
+                            toast.error(errorMessage);
+                            setIsCallActive(true);
+                            toast.info('📱 Call started without camera/mic. You can still use chat and captions!');
+                        } else {
+                            toast.error(errorMessage + ' Error: ' + error.message);
+                            setIsCallActive(true);
+                            toast.info('📱 Call started without camera/mic. You can still use chat and captions!');
+                        }
+                    }
+                } else {
+                    if (stream) {
+                        stream.getTracks().forEach(track => track.stop());
+                        setStream(null);
+                    }
+                    if (videoRef.current) {
+                        videoRef.current.srcObject = null;
+                    }
+                    if (videoRefExpanded.current) {
+                        videoRefExpanded.current.srcObject = null;
+                    }
+                    setIsCallActive(false);
+                    setCurrentCaption('');
+                    toast.info('Call ended');
+                }
+            };
+            
+            const handleVideoToggle = () => {
+                if (stream) {
+                    const videoTrack = stream.getVideoTracks()[0];
+                    if (videoTrack) {
+                        videoTrack.enabled = !isVideoOn;
+                    }
+                }
+                setIsVideoOn(!isVideoOn);
+            };
+            
+            const handleMicToggle = () => {
+                if (stream) {
+                    const audioTrack = stream.getAudioTracks()[0];
+                    if (audioTrack) {
+                        audioTrack.enabled = !isMicOn;
+                    }
+                }
+                setIsMicOn(!isMicOn);
+            };
+            
+            useEffect(() => {
+                if (stream) {
+                    if (isVideoExpanded && videoRefExpanded.current) {
+                        videoRefExpanded.current.srcObject = stream;
+                    } else if (!isVideoExpanded && videoRef.current) {
+                        videoRef.current.srcObject = stream;
+                    }
+                }
+            }, [stream, isVideoExpanded]);
+            
+            useEffect(() => {
+                if (isCallActive && captionsEnabled) {
+                    const captions = [
+                        'Hello, how are you today?',
+                        'Thank you for joining the call.',
+                        'Can you hear me clearly?',
+                        'The weather is nice today.',
+                        'Let\'s discuss the project.',
+                        'I agree with your point.',
+                        'That sounds like a great idea!',
+                        'Could you please repeat that?',
+                        'I understand what you mean.',
+                        'Let\'s move to the next topic.'
+                    ];
+                    
+                    const interval = setInterval(() => {
+                        const randomCaption = captions[Math.floor(Math.random() * captions.length)];
+                        setCurrentCaption(randomCaption);
+                    }, 5000);
+                    
+                    return () => clearInterval(interval);
+                } else {
+                    setCurrentCaption('');
+                }
+            }, [isCallActive, captionsEnabled]);
+            
+            const copyInviteLink = async () => {
+                const inviteLink = `${window.location.origin}/join/${Math.random().toString(36).substring(7)}`;
+                
+                try {
+                    if (navigator.clipboard && navigator.clipboard.writeText) {
+                        await navigator.clipboard.writeText(inviteLink);
+                        setLinkCopied(true);
+                        toast.success('Invite link copied to clipboard!');
+                        setTimeout(() => setLinkCopied(false), 3000);
+                        return;
+                    }
+                } catch (err) {
+                    console.log('Clipboard API failed, using fallback method');
+                }
+                
+                try {
+                    const textArea = document.createElement('textarea');
+                    textArea.value = inviteLink;
+                    textArea.style.position = 'fixed';
+                    textArea.style.left = '-999999px';
+                    textArea.style.top = '-999999px';
+                    document.body.appendChild(textArea);
+                    textArea.focus();
+                    textArea.select();
+                    
+                    const successful = document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    
+                    if (successful) {
+                        setLinkCopied(true);
+                        toast.success('Invite link copied to clipboard!');
+                        setTimeout(() => setLinkCopied(false), 3000);
+                    } else {
+                        toast.info(`Copy this link: ${inviteLink}`);
+                        setLinkCopied(true);
+                        setTimeout(() => setLinkCopied(false), 3000);
+                    }
+                } catch (err) {
+                    toast.info(`Copy this link: ${inviteLink}`);
+                    setLinkCopied(true);
+                    setTimeout(() => setLinkCopied(false), 3000);
+                }
+            };
+            
+            const sendEmailInvite = () => {
+                if (!inviteEmail || !inviteEmail.includes('@')) {
+                    toast.error('Please enter a valid email address');
+                    return;
+                }
+                
+                toast.success(`Invitation sent to ${inviteEmail}!`);
+                setInviteEmail('');
+            };
+            
+            const inviteParticipant = (participant) => {
+                toast.success(`Invitation sent to ${participant.name}!`);
+            };
+            
+            const sendMessage = () => {
+                if (messageInput.trim() === '') return;
+                
+                const newMessage = {
+                    id: chatMessages.length + 1,
+                    sender: 'Me',
+                    text: messageInput,
+                    time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                    isMe: true
+                };
+                
+                setChatMessages([...chatMessages, newMessage]);
+                setMessageInput('');
+                
+                setTimeout(() => {
+                    const responses = [
+                        "That's great!",
+                        "I agree with you.",
+                        "Thanks for sharing!",
+                        "Interesting point!",
+                        "Got it, thanks!"
+                    ];
+                    const randomResponse = responses[Math.floor(Math.random() * responses.length)];
+                    
+                    const responseMessage = {
+                        id: chatMessages.length + 2,
+                        sender: 'Sarah Johnson',
+                        text: randomResponse,
+                        time: new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }),
+                        isMe: false
+                    };
+                    
+                    setChatMessages(prev => [...prev, responseMessage]);
+                }, 2000);
+            };
+            
+            const handleKeyPress = (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            };
+            
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-purple-300 via-blue-300 to-teal-300" dir={isRTL ? 'rtl' : 'ltr'}>
+                    <ToastContainer />
+                    
+                    {/* Header */}
+                    <header className="bg-gradient-to-r from-purple-600 via-blue-600 to-teal-600 sticky top-0 z-50 shadow-lg">
+                        <div className="container mx-auto px-4 py-5">
+                            <div className="flex items-center justify-between">
+                                <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-3`}>
+                                    <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center shadow-lg">
+                                        <Icon name="Captions" className="w-7 h-7 text-purple-600" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-2xl font-bold text-white">{t.signCaption}</h1>
+                                        <p className="text-sm text-white/90">{t.tagline}</p>
+                                    </div>
+                                </div>
+                                
+                                <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-4`}>
+                                    <div className="px-3 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white border border-white/30 flex items-center gap-2">
+                                        <div className={`w-2 h-2 bg-green-400 rounded-full ${isRTL ? 'ml-2' : 'mr-2'} animate-pulse`}></div>
+                                        {t.online}
+                                    </div>
+                                    <div className="w-10 h-10 rounded-full bg-white/20 border-2 border-white/30 flex items-center justify-center text-white">
+                                        <Icon name="User" className="w-5 h-5" />
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+                    
+                    {/* Main Content */}
+                    <div className="container mx-auto px-4 py-8 min-h-screen">
+                        {/* Tabs */}
+                        <div className="grid grid-cols-4 gap-2 bg-white border-2 border-purple-300 rounded-xl p-1.5 shadow-md mb-8">
+                            <button
+                                onClick={() => setActiveTab('home')}
+                                className={`py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                                    activeTab === 'home'
+                                        ? 'bg-gradient-to-r from-purple-600 to-teal-500 text-white shadow-md'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                {t.home}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('call')}
+                                className={`py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                                    activeTab === 'call'
+                                        ? 'bg-gradient-to-r from-purple-600 to-teal-500 text-white shadow-md'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                {t.callGeneration}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('about')}
+                                className={`py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                                    activeTab === 'about'
+                                        ? 'bg-gradient-to-r from-purple-600 to-teal-500 text-white shadow-md'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                {t.aboutUs}
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('settings')}
+                                className={`py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                                    activeTab === 'settings'
+                                        ? 'bg-gradient-to-r from-purple-600 to-teal-500 text-white shadow-md'
+                                        : 'text-gray-700 hover:bg-gray-100'
+                                }`}
+                            >
+                                {t.settings}
+                            </button>
+                        </div>
+                        
+                        {/* Tab Contents */}
+                        {activeTab === 'home' && (
+                            <div className="space-y-8">
+                                {/* Hero Section */}
+                                <div className="text-center space-y-6 bg-white rounded-2xl p-12 shadow-md border border-gray-100">
+                                    <h2 className="text-5xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-teal-500 bg-clip-text text-transparent">
+                                        {t.breakBarriers}
+                                    </h2>
+                                    <p className="text-xl text-gray-700 max-w-2xl mx-auto">
+                                        {t.heroDescription}
+                                    </p>
+                                    
+                                    <div className={`flex justify-center ${isRTL ? 'space-x-reverse' : ''} space-x-4 pt-4`}>
+                                        <button
+                                            onClick={() => setActiveTab('call')}
+                                            className="bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white px-8 py-4 rounded-full shadow-lg hover:shadow-xl transition-all duration-300 flex items-center gap-2"
+                                        >
+                                            <Icon name="Video" className="w-5 h-5" />
+                                            {t.startVideoCall}
+                                        </button>
+                                        
+                                        <button
+                                            onClick={() => setActiveTab('about')}
+                                            className="border-2 border-purple-400 text-purple-700 hover:bg-purple-50 px-8 py-4 rounded-full transition-all duration-300 flex items-center gap-2"
+                                        >
+                                            <Icon name="MessageSquare" className="w-5 h-5" />
+                                            {t.learnMore}
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                {/* Features Grid */}
+                                <div className="grid md:grid-cols-3 gap-6 mt-12">
+                                    <div className="bg-gradient-to-br from-purple-400 to-purple-500 border-2 border-purple-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+                                        <div className="text-center">
+                                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                                <Icon name="Zap" className="w-10 h-10 text-purple-600" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white mb-3">{t.realTimeProcessing}</h3>
+                                            <p className="text-white leading-relaxed">
+                                                {t.realTimeDesc}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-gradient-to-br from-blue-400 to-blue-500 border-2 border-blue-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+                                        <div className="text-center">
+                                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                                <Icon name="Shield" className="w-10 h-10 text-blue-600" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white mb-3">{t.securePrivate}</h3>
+                                            <p className="text-white leading-relaxed">
+                                                {t.secureDesc}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-gradient-to-br from-teal-400 to-teal-500 border-2 border-teal-600 rounded-2xl p-6 shadow-lg hover:shadow-2xl transition-all duration-300">
+                                        <div className="text-center">
+                                            <div className="w-20 h-20 bg-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                                <Icon name="Globe" className="w-10 h-10 text-teal-600" />
+                                            </div>
+                                            <h3 className="text-xl font-bold text-white mb-3">{t.multiLanguage}</h3>
+                                            <p className="text-white leading-relaxed">
+                                                {t.multiDesc}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'call' && (
+                            <div className="space-y-6">
+                                <div className="grid lg:grid-cols-3 gap-6">
+                                    {/* Video Call Interface */}
+                                    <div className="lg:col-span-2">
+                                        <div className="bg-white border border-gray-200 rounded-2xl shadow-md">
+                                            <div className="border-b border-gray-100 p-6">
+                                                <h3 className="text-xl font-bold text-purple-700 flex items-center gap-2">
+                                                    <Icon name="Video" className="w-5 h-5" />
+                                                    {t.videoCallInterface}
+                                                </h3>
+                                            </div>
+                                            
+                                            {isCallActive && !stream && (
+                                                <div className="bg-gradient-to-r from-orange-50 to-amber-50 border-b border-orange-200 px-6 py-3">
+                                                    <div className="flex items-start space-x-3">
+                                                        <Icon name="Info" className="w-5 h-5 text-orange-600 flex-shrink-0 mt-0.5" />
+                                                        <div className="flex-1">
+                                                            <p className="text-sm font-semibold text-orange-900">Camera Access Blocked</p>
+                                                            <p className="text-xs text-orange-800 mt-1">
+                                                                The call is working, but video is unavailable. Click the <strong>Camera Help</strong> button below for instructions to enable it.
+                                                            </p>
+                                                        </div>
+                                                        <button
+                                                            onClick={() => setShowPermissionHelp(true)}
+                                                            className="px-3 py-1 text-xs border border-orange-300 text-orange-700 hover:bg-orange-100 rounded-lg flex-shrink-0 flex items-center gap-1"
+                                                        >
+                                                            <Icon name="AlertCircle" className="w-3 h-3" />
+                                                            Help
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            )}
+                                            
+                                            <div className="p-6">
+                                                <div className="aspect-video bg-gradient-to-br from-gray-900 to-gray-700 rounded-xl relative overflow-hidden shadow-inner">
+                                                    {stream && isVideoOn ? (
+                                                        <video
+                                                            ref={videoRef}
+                                                            autoPlay
+                                                            playsInline
+                                                            muted
+                                                            className="absolute inset-0 w-full h-full object-cover"
+                                                        />
+                                                    ) : (
+                                                        <div className="absolute inset-0 flex items-center justify-center p-6">
+                                                            <div className="text-center text-white max-w-md">
+                                                                <Icon name="Camera" className="w-20 h-20 mx-auto mb-4 opacity-40" />
+                                                                <p className="opacity-75 text-lg mb-2">
+                                                                    {isCallActive && !isVideoOn 
+                                                                        ? 'Camera is off' 
+                                                                        : isCallActive && !stream 
+                                                                        ? 'Camera not available'
+                                                                        : t.videoFeedText}
+                                                                </p>
+                                                                {isCallActive && !stream && (
+                                                                    <p className="text-sm opacity-60 mt-3">
+                                                                        💡 To enable camera: Click the camera icon in your browser's address bar and allow permissions
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    {isCallActive && (
+                                                        <div className={`absolute top-4 ${isRTL ? 'right-4' : 'left-4'}`}>
+                                                            <div className="px-3 py-1 rounded-full bg-red-500 text-white shadow-lg flex items-center gap-2">
+                                                                <div className="w-2 h-2 bg-white rounded-full animate-pulse"></div>
+                                                                {t.live}
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                    
+                                                    <div className={`absolute top-4 ${isRTL ? 'left-4' : 'right-4'}`}>
+                                                        <button
+                                                            onClick={() => setIsVideoExpanded(true)}
+                                                            className="px-3 py-2 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg"
+                                                        >
+                                                            <Icon name="Maximize2" className="w-4 h-4" />
+                                                        </button>
+                                                    </div>
+                                                    
+                                                    {captionsEnabled && (
+                                                        <div className={`absolute bottom-4 ${isRTL ? 'right-4 left-4' : 'left-4 right-4'}`}>
+                                                            <div 
+                                                                className="rounded-lg p-4 shadow-lg"
+                                                                style={{backgroundColor: textBackgroundColor + 'CC'}}
+                                                            >
+                                                                <p 
+                                                                    className="text-center"
+                                                                    style={{fontSize: `${captionSize}px`, color: textColor}}
+                                                                >
+                                                                    {currentCaption || t.captionsText}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                
+                                                {/* Call Controls */}
+                                                <div className={`flex justify-center ${isRTL ? 'space-x-reverse' : ''} space-x-4 mt-8`}>
+                                                    <button
+                                                        onClick={handleMicToggle}
+                                                        className={`rounded-full w-16 h-16 shadow-lg transition-all ${
+                                                            isMicOn 
+                                                                ? 'bg-white hover:bg-gray-100 text-purple-600' 
+                                                                : 'bg-red-500 hover:bg-red-600 text-white'
+                                                        }`}
+                                                    >
+                                                        <Icon name={isMicOn ? 'Mic' : 'MicOff'} className="w-6 h-6 mx-auto" />
+                                                    </button>
+                                                    
+                                                    <button
+                                                        onClick={handleVideoToggle}
+                                                        className={`rounded-full w-16 h-16 shadow-lg transition-all ${
+                                                            isVideoOn 
+                                                                ? 'bg-white hover:bg-gray-100 text-blue-600' 
+                                                                : 'bg-red-500 hover:bg-red-600 text-white'
+                                                        }`}
+                                                    >
+                                                        <Icon name={isVideoOn ? 'Video' : 'VideoOff'} className="w-6 h-6 mx-auto" />
+                                                    </button>
+                                                    
+                                                    <button
+                                                        onClick={toggleCall}
+                                                        className={`rounded-full w-16 h-16 shadow-xl transition-all ${
+                                                            isCallActive 
+                                                                ? 'bg-red-500 hover:bg-red-600 text-white' 
+                                                                : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
+                                                        }`}
+                                                    >
+                                                        <Icon name={isCallActive ? 'PhoneOff' : 'Phone'} className="w-6 h-6 mx-auto" />
+                                                    </button>
+                                                    
+                                                    <button
+                                                        onClick={() => setIsAudioOn(!isAudioOn)}
+                                                        className={`rounded-full w-16 h-16 shadow-lg transition-all ${
+                                                            isAudioOn 
+                                                                ? 'bg-white hover:bg-gray-100 text-teal-600' 
+                                                                : 'bg-red-500 hover:bg-red-600 text-white'
+                                                        }`}
+                                                    >
+                                                        <Icon name={isAudioOn ? 'Volume2' : 'VolumeX'} className="w-6 h-6 mx-auto" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    {/* Call Controls Panel */}
+                                    <div className="space-y-6">
+                                        <div className="bg-purple-50 border-2 border-purple-200 rounded-2xl shadow-md">
+                                            <div className="border-b border-purple-100 bg-purple-100/50 p-6">
+                                                <h3 className="text-xl font-bold text-purple-800">{t.quickActions}</h3>
+                                            </div>
+                                            <div className="p-6 space-y-3">
+                                                <button
+                                                    onClick={() => setShowInviteModal(true)}
+                                                    className="w-full bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white py-3 px-4 rounded-lg shadow-md hover:shadow-lg transition-all duration-300 flex items-center justify-center gap-2"
+                                                >
+                                                    <Icon name="Users" className="w-4 h-4" />
+                                                    {t.inviteParticipants}
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={() => setShowChat(!showChat)}
+                                                    className="w-full border-2 border-purple-300 text-purple-700 hover:bg-purple-100 bg-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                                                >
+                                                    <Icon name="MessageSquare" className="w-4 h-4" />
+                                                    {showChat ? t.closeChat : t.openChat}
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={() => setCaptionsEnabled(!captionsEnabled)}
+                                                    className="w-full border-2 border-teal-300 text-teal-700 hover:bg-teal-100 bg-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                                                >
+                                                    <Icon name="Captions" className="w-4 h-4" />
+                                                    {captionsEnabled ? t.hideCaptions : t.showCaptions}
+                                                </button>
+                                                
+                                                {!stream && isCallActive && (
+                                                    <button
+                                                        onClick={() => setShowPermissionHelp(true)}
+                                                        className="w-full border-2 border-orange-300 text-orange-700 hover:bg-orange-100 bg-white py-3 px-4 rounded-lg transition-all duration-300 flex items-center justify-center gap-2"
+                                                    >
+                                                        <Icon name="AlertCircle" className="w-4 h-4" />
+                                                        Camera Help
+                                                    </button>
+                                                )}
+                                            </div>
+                                        </div>
+                                        
+                                        <div className="bg-blue-50 border-2 border-blue-200 rounded-2xl shadow-md">
+                                            <div className="border-b border-blue-100 bg-blue-100/50 p-6">
+                                                <h3 className="text-xl font-bold text-blue-800">{t.callStatistics}</h3>
+                                            </div>
+                                            <div className="p-6 space-y-4">
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm text-gray-700">{t.duration}</span>
+                                                    <span className="text-sm font-semibold text-gray-900">{isCallActive ? "00:45" : "00:00"}</span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm text-gray-700">{t.quality}</span>
+                                                    <span className="px-2 py-1 text-xs bg-green-100 text-green-800 border border-green-300 rounded-full font-semibold">HD</span>
+                                                </div>
+                                                <div className="flex justify-between items-center">
+                                                    <span className="text-sm text-gray-700">{t.participants}</span>
+                                                    <span className="text-sm font-semibold text-gray-900">2</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {/* Chat Panel */}
+                                {showChat && (
+                                    <div className={`fixed ${isRTL ? 'left-4' : 'right-4'} top-20 bottom-4 w-96 z-40`}>
+                                        <div className="h-full bg-white border border-gray-200 rounded-2xl shadow-2xl flex flex-col">
+                                            <div className="flex items-center justify-between border-b border-gray-200 bg-purple-50 p-6">
+                                                <h3 className="text-xl font-bold text-purple-700">{t.chat}</h3>
+                                                <button
+                                                    onClick={() => setShowChat(false)}
+                                                    className="px-2 py-1 hover:bg-purple-100 text-purple-700 text-xl rounded-lg"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                            <div className="flex-1 flex flex-col p-4 overflow-hidden">
+                                                <div className="flex-1 bg-gray-50 rounded-lg p-4 mb-4 overflow-y-auto border border-gray-200 space-y-3">
+                                                    {chatMessages.map((message) => (
+                                                        <div key={message.id} className={`flex ${message.isMe ? 'justify-end' : 'justify-start'}`}>
+                                                            <div className={`max-w-[75%] ${
+                                                                message.isMe 
+                                                                    ? 'bg-gradient-to-r from-purple-600 to-teal-500 text-white' 
+                                                                    : 'bg-white border border-gray-200 text-gray-800'
+                                                            } rounded-2xl px-4 py-2 shadow-sm`}>
+                                                                {!message.isMe && (
+                                                                    <p className="text-xs font-semibold text-purple-600 mb-1">{message.sender}</p>
+                                                                )}
+                                                                <p className="text-sm leading-relaxed">{message.text}</p>
+                                                                <p className={`text-xs mt-1 ${message.isMe ? 'text-white/80' : 'text-gray-500'}`}>
+                                                                    {message.time}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                                <div className={`flex ${isRTL ? 'space-x-reverse' : ''} space-x-2`}>
+                                                    <input
+                                                        type="text"
+                                                        placeholder={t.typeMessage}
+                                                        className="flex-1 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                        value={messageInput}
+                                                        onChange={(e) => setMessageInput(e.target.value)}
+                                                        onKeyPress={handleKeyPress}
+                                                    />
+                                                    <button
+                                                        onClick={sendMessage}
+                                                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white rounded-lg"
+                                                    >
+                                                        {t.send}
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Expanded Video Modal */}
+                                {isVideoExpanded && (
+                                    <div
+                                        onClick={() => setIsVideoExpanded(false)}
+                                        className="fixed inset-0 bg-black/95 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                                    >
+                                        <div
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="w-full h-full max-w-7xl max-h-[90vh] flex flex-col"
+                                        >
+                                            <div className="flex-1 bg-gradient-to-br from-gray-900 to-gray-700 rounded-2xl relative overflow-hidden shadow-2xl">
+                                                {stream && isVideoOn ? (
+                                                    <video
+                                                        ref={videoRefExpanded}
+                                                        autoPlay
+                                                        playsInline
+                                                        muted
+                                                        className="absolute inset-0 w-full h-full object-cover"
+                                                    />
+                                                ) : (
+                                                    <div className="absolute inset-0 flex items-center justify-center p-8">
+                                                        <div className="text-center text-white max-w-lg">
+                                                            <Icon name="Camera" className="w-32 h-32 mx-auto mb-6 opacity-40" />
+                                                            <p className="opacity-75 text-2xl mb-3">
+                                                                {isCallActive && !isVideoOn 
+                                                                    ? 'Camera is off' 
+                                                                    : isCallActive && !stream 
+                                                                    ? 'Camera not available'
+                                                                    : t.videoFeedText}
+                                                            </p>
+                                                            {isCallActive && !stream && (
+                                                                <p className="text-base opacity-60 mt-4">
+                                                                    💡 To enable camera: Click the camera icon in your browser's address bar and allow permissions, then restart the call
+                                                                </p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                {isCallActive && (
+                                                    <div className={`absolute top-6 ${isRTL ? 'right-6' : 'left-6'}`}>
+                                                        <div className="px-4 py-2 rounded-full bg-red-500 text-white text-lg shadow-lg flex items-center gap-2">
+                                                            <div className="w-3 h-3 bg-white rounded-full animate-pulse"></div>
+                                                            {t.live}
+                                                        </div>
+                                                    </div>
+                                                )}
+                                                
+                                                <div className={`absolute top-6 ${isRTL ? 'left-6' : 'right-6'}`}>
+                                                    <button
+                                                        onClick={() => setIsVideoExpanded(false)}
+                                                        className="px-4 py-3 bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white rounded-lg"
+                                                    >
+                                                        <Icon name="Minimize2" className="w-5 h-5" />
+                                                    </button>
+                                                </div>
+                                                
+                                                {captionsEnabled && (
+                                                    <div className={`absolute bottom-6 ${isRTL ? 'right-8 left-8' : 'left-8 right-8'}`}>
+                                                        <div 
+                                                            className="rounded-xl p-6 shadow-2xl"
+                                                            style={{backgroundColor: textBackgroundColor + 'CC'}}
+                                                        >
+                                                            <p 
+                                                                className="text-center text-xl"
+                                                                style={{fontSize: `${captionSize * 1.5}px`, color: textColor}}
+                                                            >
+                                                                {currentCaption || t.captionsText}
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                )}
+                                            </div>
+                                            
+                                            <div className={`flex justify-center ${isRTL ? 'space-x-reverse' : ''} space-x-6 mt-8`}>
+                                                <button
+                                                    onClick={handleMicToggle}
+                                                    className={`rounded-full w-20 h-20 shadow-xl transition-all ${
+                                                        isMicOn 
+                                                            ? 'bg-white hover:bg-gray-100 text-purple-600' 
+                                                            : 'bg-red-500 hover:bg-red-600 text-white'
+                                                    }`}
+                                                >
+                                                    <Icon name={isMicOn ? 'Mic' : 'MicOff'} className="w-8 h-8 mx-auto" />
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={handleVideoToggle}
+                                                    className={`rounded-full w-20 h-20 shadow-xl transition-all ${
+                                                        isVideoOn 
+                                                            ? 'bg-white hover:bg-gray-100 text-blue-600' 
+                                                            : 'bg-red-500 hover:bg-red-600 text-white'
+                                                    }`}
+                                                >
+                                                    <Icon name={isVideoOn ? 'Video' : 'VideoOff'} className="w-8 h-8 mx-auto" />
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={toggleCall}
+                                                    className={`rounded-full w-20 h-20 shadow-2xl transition-all ${
+                                                        isCallActive 
+                                                            ? 'bg-red-500 hover:bg-red-600 text-white' 
+                                                            : 'bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 text-white'
+                                                    }`}
+                                                >
+                                                    <Icon name={isCallActive ? 'PhoneOff' : 'Phone'} className="w-8 h-8 mx-auto" />
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={() => setIsAudioOn(!isAudioOn)}
+                                                    className={`rounded-full w-20 h-20 shadow-xl transition-all ${
+                                                        isAudioOn 
+                                                            ? 'bg-white hover:bg-gray-100 text-teal-600' 
+                                                            : 'bg-red-500 hover:bg-red-600 text-white'
+                                                    }`}
+                                                >
+                                                    <Icon name={isAudioOn ? 'Volume2' : 'VolumeX'} className="w-8 h-8 mx-auto" />
+                                                </button>
+                                                
+                                                <button
+                                                    onClick={() => setCaptionsEnabled(!captionsEnabled)}
+                                                    className={`rounded-full w-20 h-20 shadow-xl transition-all ${
+                                                        captionsEnabled 
+                                                            ? 'bg-white hover:bg-gray-100 text-purple-600' 
+                                                            : 'bg-gray-600 hover:bg-gray-700 text-white'
+                                                    }`}
+                                                >
+                                                    <Icon name="Captions" className="w-8 h-8 mx-auto" />
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Invite Participants Modal */}
+                                {showInviteModal && (
+                                    <div
+                                        onClick={() => setShowInviteModal(false)}
+                                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50"
+                                    >
+                                        <div
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="bg-white rounded-2xl p-6 w-full max-w-md mx-4 shadow-2xl"
+                                        >
+                                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                                                <h3 className="text-xl font-semibold text-purple-700">{t.inviteParticipants}</h3>
+                                                <button
+                                                    onClick={() => setShowInviteModal(false)}
+                                                    className="px-2 py-1 hover:bg-purple-50 text-purple-700 text-xl rounded-lg"
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="mb-6 p-4 bg-purple-50 rounded-lg border border-purple-200">
+                                                <p className="text-sm font-semibold text-purple-900 mb-2">Share Meeting Link</p>
+                                                <div className="flex space-x-2">
+                                                    <input
+                                                        type="text"
+                                                        value={`${window.location.origin}/join/abc123`}
+                                                        readOnly
+                                                        className="flex-1 px-3 py-2 bg-white border border-purple-300 text-sm rounded-lg"
+                                                    />
+                                                    <button
+                                                        onClick={copyInviteLink}
+                                                        className={`px-4 py-2 ${
+                                                            linkCopied 
+                                                                ? 'bg-green-500 hover:bg-green-600' 
+                                                                : 'bg-purple-600 hover:bg-purple-700'
+                                                        } text-white rounded-lg transition-all`}
+                                                    >
+                                                        <Icon name={linkCopied ? 'Check' : 'Copy'} className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="space-y-3 max-h-80 overflow-y-auto pr-2">
+                                                {participants.map((participant) => (
+                                                    <div key={participant.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-purple-50 transition-colors border border-gray-200">
+                                                        <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-3`}>
+                                                            <div className="w-10 h-10 rounded-full bg-gradient-to-r from-purple-600 to-teal-500 text-white flex items-center justify-center font-bold border-2 border-purple-200">
+                                                                {participant.avatar}
+                                                            </div>
+                                                            <div>
+                                                                <p className="font-semibold text-sm text-gray-900">{participant.name}</p>
+                                                                <p className="text-xs text-gray-600">{participant.email}</p>
+                                                            </div>
+                                                        </div>
+                                                        <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-3`}>
+                                                            <div className={`w-2.5 h-2.5 rounded-full ${participant.online ? 'bg-green-500' : 'bg-gray-400'}`}></div>
+                                                            <button
+                                                                onClick={() => inviteParticipant(participant)}
+                                                                className="px-3 py-1 text-xs border border-purple-300 text-purple-700 hover:bg-purple-100 font-semibold rounded-lg"
+                                                            >
+                                                                {t.invite}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                            
+                                            <div className="mt-6 pt-6 border-t border-gray-200">
+                                                <div className="flex space-x-2 mb-3">
+                                                    <input
+                                                        type="email"
+                                                        placeholder={t.enterEmail}
+                                                        className="flex-1 px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg"
+                                                        value={inviteEmail}
+                                                        onChange={(e) => setInviteEmail(e.target.value)}
+                                                        onKeyPress={(e) => e.key === 'Enter' && sendEmailInvite()}
+                                                    />
+                                                    <button
+                                                        onClick={sendEmailInvite}
+                                                        className="px-4 py-2 bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white rounded-lg"
+                                                    >
+                                                        <Icon name="Mail" className="w-4 h-4" />
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                                
+                                {/* Permission Help Modal */}
+                                {showPermissionHelp && (
+                                    <div
+                                        onClick={() => setShowPermissionHelp(false)}
+                                        className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+                                    >
+                                        <div
+                                            onClick={(e) => e.stopPropagation()}
+                                            className="bg-white rounded-2xl p-6 w-full max-w-lg mx-4 shadow-2xl"
+                                        >
+                                            <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-200">
+                                                <div className="flex items-center space-x-3">
+                                                    <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
+                                                        <Icon name="AlertCircle" className="w-6 h-6 text-orange-600" />
+                                                    </div>
+                                                    <h3 className="text-xl font-semibold text-gray-900">Camera & Microphone Help</h3>
+                                                </div>
+                                                <button
+                                                    onClick={() => setShowPermissionHelp(false)}
+                                                    className="px-2 py-1 hover:bg-gray-100 text-gray-700 rounded-lg"
+                                                >
+                                                    <Icon name="X" className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                            
+                                            <div className="space-y-4 text-gray-700">
+                                                <div className="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                                                    <p className="font-semibold text-orange-900 mb-2">⚠️ Camera/Microphone access was blocked</p>
+                                                    <p className="text-sm text-orange-800">
+                                                        Your browser needs permission to access your camera and microphone for video calls.
+                                                    </p>
+                                                </div>
+                                                
+                                                <div className="space-y-3">
+                                                    <h4 className="font-semibold text-gray-900">How to enable permissions:</h4>
+                                                    
+                                                    <div className="space-y-2">
+                                                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-600 text-white text-sm flex items-center justify-center font-semibold">1</span>
+                                                            <div>
+                                                                <p className="font-medium text-gray-900">Look for the camera icon</p>
+                                                                <p className="text-sm text-gray-600">In your browser's address bar (near the URL)</p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-600 text-white text-sm flex items-center justify-center font-semibold">2</span>
+                                                            <div>
+                                                                <p className="font-medium text-gray-900">Click the camera icon</p>
+                                                                <p className="text-sm text-gray-600">You'll see permission settings for this site</p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-600 text-white text-sm flex items-center justify-center font-semibold">3</span>
+                                                            <div>
+                                                                <p className="font-medium text-gray-900">Allow camera and microphone</p>
+                                                                <p className="text-sm text-gray-600">Select "Allow" for both camera and microphone access</p>
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        <div className="flex items-start space-x-3 p-3 bg-gray-50 rounded-lg">
+                                                            <span className="flex-shrink-0 w-6 h-6 rounded-full bg-purple-600 text-white text-sm flex items-center justify-center font-semibold">4</span>
+                                                            <div>
+                                                                <p className="font-medium text-gray-900">Restart the call</p>
+                                                                <p className="text-sm text-gray-600">End the current call and start a new one</p>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mt-4">
+                                                    <p className="text-sm text-blue-900">
+                                                        <strong>💡 Tip:</strong> You can still use the call for chat and captions even without camera access!
+                                                    </p>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="mt-6 flex space-x-3">
+                                                <button
+                                                    onClick={() => setShowPermissionHelp(false)}
+                                                    className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-teal-500 hover:from-purple-700 hover:to-teal-600 text-white rounded-lg"
+                                                >
+                                                    Got it!
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                        
+                        {activeTab === 'about' && (
+                            <div className="space-y-8">
+                                <div className="grid lg:grid-cols-2 gap-8">
+                                    <div className="bg-white border border-gray-200 rounded-2xl shadow-md">
+                                        <div className="border-b border-purple-100 bg-purple-50 p-6">
+                                            <h3 className="text-2xl font-bold text-purple-800 flex items-center gap-3">
+                                                <Icon name="Heart" className="w-7 h-7 text-pink-500" />
+                                                {t.aboutUsTitle}
+                                            </h3>
+                                        </div>
+                                        <div className="p-6 space-y-4">
+                                            <p className="text-gray-700 leading-relaxed">{t.aboutUsText1}</p>
+                                            <p className="text-gray-700 leading-relaxed">{t.aboutUsText2}</p>
+                                            <p className="text-gray-700 leading-relaxed">{t.aboutUsText3}</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-white border border-gray-200 rounded-2xl shadow-md">
+                                        <div className="border-b border-blue-100 bg-blue-50 p-6">
+                                            <h3 className="text-2xl font-bold text-blue-800 flex items-center gap-3">
+                                                <Icon name="Star" className="w-7 h-7 text-yellow-500" />
+                                                {t.contactUs}
+                                            </h3>
+                                        </div>
+                                        <div className="p-6 space-y-4">
+                                            <div className="space-y-4">
+                                                <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-3 p-3 bg-purple-50 rounded-lg border border-purple-100`}>
+                                                    <div className="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                                                        <Icon name="MessageSquare" className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <span className="text-gray-800">SignCaption@email.com</span>
+                                                </div>
+                                                
+                                                <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-100`}>
+                                                    <div className="w-10 h-10 bg-gradient-to-r from-blue-600 to-cyan-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                                                        <Icon name="Phone" className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <span className="text-gray-800">+1 (555) 123-4567</span>
+                                                </div>
+                                                
+                                                <div className={`flex items-center ${isRTL ? 'space-x-reverse' : ''} space-x-3 p-3 bg-teal-50 rounded-lg border border-teal-100`}>
+                                                    <div className="w-10 h-10 bg-gradient-to-r from-teal-600 to-green-500 rounded-full flex items-center justify-center shadow-md flex-shrink-0">
+                                                        <Icon name="Globe" className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <span className="text-gray-800">{t.available247}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <div className="mt-6 p-5 bg-gradient-to-r from-purple-100 to-blue-100 rounded-xl border border-purple-200">
+                                                <p className="text-sm text-gray-800 text-center font-medium">
+                                                    {t.communityText}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                        
+                        {activeTab === 'settings' && (
+                            <div className="space-y-6">
+                                <div className="grid lg:grid-cols-2 gap-6">
+                                    <div className="space-y-6">
+                                        <div className="bg-white border border-gray-200 rounded-2xl shadow-md">
+                                            <div className="border-b border-purple-100 bg-purple-50 p-6">
+                                                <h3 className="text-xl font-bold text-purple-800 flex items-center gap-2">
+                                                    <Icon name="Settings" className="w-5 h-5" />
+                                                    {t.displaySettings}
+                                                </h3>
+                                                <p className="text-sm text-gray-700 mt-1">{t.displayDesc}</p>
+                                            </div>
+                                            <div className="p-6 space-y-6">
+                                                <div className="space-y-3">
+                                                    <label className="text-sm font-semibold text-gray-800">{t.captionSize}</label>
+                                                    <input
+                                                        type="range"
+                                                        min="12"
+                                                        max="24"
+                                                        step="1"
+                                                        value={captionSize}
+                                                        onChange={(e) => setCaptionSize(parseInt(e.target.value))}
+                                                        className="w-full"
+                                                    />
+                                                    <p className="text-xs text-gray-600">{t.currentSize} {captionSize}px</p>
+                                                </div>
+                                                
+                                                <div className="space-y-3">
+                                                    <label className="text-sm font-semibold text-gray-800">{t.language}</label>
+                                                    <select
+                                                        value={language}
+                                                        onChange={(e) => setLanguage(e.target.value)}
+                                                        className="w-full px-4 py-2 bg-gray-50 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                    >
+                                                        <option value="english">English</option>
+                                                        <option value="arabic">العربية</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <div className="space-y-3">
+                                                    <label className="text-sm font-semibold text-gray-800">{t.textColor}</label>
+                                                    <div className="flex items-center space-x-3">
+                                                        <input
+                                                            type="color"
+                                                            value={textColor}
+                                                            onChange={(e) => setTextColor(e.target.value)}
+                                                            className="w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer shadow-sm"
+                                                        />
+                                                        <span className="text-sm text-gray-700 font-medium">{textColor}</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-5 gap-2 mt-2">
+                                                        {colorOptions.map((color) => (
+                                                            <button
+                                                                key={color}
+                                                                onClick={() => setTextColor(color)}
+                                                                className={`w-10 h-10 rounded-lg border-2 hover:scale-110 transition-transform shadow-sm ${
+                                                                    textColor === color ? 'border-purple-600 ring-2 ring-purple-300' : 'border-gray-300'
+                                                                }`}
+                                                                style={{ backgroundColor: color }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="space-y-3">
+                                                    <label className="text-sm font-semibold text-gray-800">{t.textBackgroundColor}</label>
+                                                    <div className="flex items-center space-x-3">
+                                                        <input
+                                                            type="color"
+                                                            value={textBackgroundColor}
+                                                            onChange={(e) => setTextBackgroundColor(e.target.value)}
+                                                            className="w-10 h-10 rounded-lg border-2 border-gray-300 cursor-pointer shadow-sm"
+                                                        />
+                                                        <span className="text-sm text-gray-700 font-medium">{textBackgroundColor}</span>
+                                                    </div>
+                                                    <div className="grid grid-cols-5 gap-2 mt-2">
+                                                        {colorOptions.map((color) => (
+                                                            <button
+                                                                key={color}
+                                                                onClick={() => setTextBackgroundColor(color)}
+                                                                className={`w-10 h-10 rounded-lg border-2 hover:scale-110 transition-transform shadow-sm ${
+                                                                    textBackgroundColor === color ? 'border-purple-600 ring-2 ring-purple-300' : 'border-gray-300'
+                                                                }`}
+                                                                style={{ backgroundColor: color }}
+                                                            />
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                                
+                                                <div className="space-y-3">
+                                                    <label className="text-sm font-semibold text-gray-800">Preview:</label>
+                                                    <div 
+                                                        className="p-4 rounded-xl border-2 border-gray-200 shadow-sm"
+                                                        style={{backgroundColor: textBackgroundColor}}
+                                                    >
+                                                        <p style={{fontSize: `${captionSize}px`, color: textColor, textAlign: 'center'}}>
+                                                            {t.captionsText}
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <div className="bg-white border border-gray-200 rounded-2xl shadow-md">
+                                        <div className="border-b border-blue-100 bg-blue-50 p-6">
+                                            <h3 className="text-xl font-bold text-blue-800 flex items-center gap-2">
+                                                <Icon name="Volume2" className="w-5 h-5" />
+                                                {t.audioSettings}
+                                            </h3>
+                                            <p className="text-sm text-gray-700 mt-1">{t.audioDesc}</p>
+                                        </div>
+                                        <div className="p-6 space-y-6">
+                                            <div className="space-y-3">
+                                                <label className="text-sm font-semibold text-gray-800">{t.microphoneVolume}</label>
+                                                <input
+                                                    type="range"
+                                                    min="0"
+                                                    max="100"
+                                                    defaultValue="75"
+                                                    className="w-full"
+                                                />
+                                                <p className="text-xs text-gray-600">75%</p>
+                                            </div>
+                                            
+                                            <div className="space-y-3">
+                                                <label className="text-sm font-semibold text-gray-800">{t.speakerVolume}</label>
+                                                <input
+                                                    type="range"
+                                                    min="0"
+                                                    max="100"
+                                                    defaultValue="60"
+                                                    className="w-full"
+                                                />
+                                                <p className="text-xs text-gray-600">60%</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            );
+        }
+        
+        // Render app
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<App />);
+        
+        // Initialize Lucide icons
+        if (window.lucide) {
+            lucide.createIcons();
+        }
+    </script>
+</body>
+</html>
