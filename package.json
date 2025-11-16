@@ -19,5 +19,20 @@
     "joi": "^17.13.3",
     "nanoid": "^5.0.7",
     "socket.io": "^4.7.5"
-  }
+  },
+  "directories": {
+    "lib": "lib"
+  },
+  "devDependencies": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/222110234-lgtm/Sign-Caption.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/222110234-lgtm/Sign-Caption/issues"
+  },
+  "homepage": "https://github.com/222110234-lgtm/Sign-Caption#readme"
 }
